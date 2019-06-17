@@ -43,5 +43,5 @@ int main(void) {
     ++grade;
   }
 
-	return 0;
+  return 0;
 }
