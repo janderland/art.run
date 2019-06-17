@@ -19,7 +19,7 @@ int main(void) {
     fprintf(stderr, "Failed to open window.");
   }
 
-	for(int x = 0; x < XRES; x++) for(int y = 0; y < YRES; y++) {
+  for(int x = 0; x < XRES; x++) for(int y = 0; y < YRES; y++) {
     int i = y * XRES + x;
     frameA[i] = ~((x^y)-(x+y));
     frameB[i] = y * XRES * x;
@@ -41,13 +41,6 @@ int main(void) {
     }
 
     ++grade;
-    /*
-    if (up && ++grade == 255) {
-      up = false;
-    } else if (--grade == 0) {
-      up = true;
-    }
-    */
   }
 
 	return 0;
