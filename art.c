@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include "MiniFB.h"
+#include "minifb/include/MiniFB.h"
 
 #define XRES 1024
 #define YRES 768
