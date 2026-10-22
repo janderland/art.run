@@ -9,4 +9,6 @@ clang -std=c23 ../art.c -o art.run \
   -framework Carbon \
   -framework MetalKit \
   -framework Metal \
-  -lc++
+  -lc++ \
+  || exit 1
+./art.run
