@@ -1,20 +1,21 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include "minifb/include/MiniFB.h"
 #include "minifb/include/MiniFB_enums.h"
 
 #define RESOLUTION_X 10
 #define RESOLUTION_Y 10
 
-struct point { int x, y; };
+typedef struct mfb_window mfb_window;
+typedef struct { int x, y; } point;
 
+unsigned int art_state[RESOLUTION_Y][RESOLUTION_X] = {};
 mfb_update_state updated_state = MFB_STATE_OK;
-unsigned int window_state[RESOLUTION_Y][RESOLUTION_X] = {};
 
 bool mouse_is_pressed = false;
-struct point window_size = {};
+point window_size = {};
 
 void err(const char *msg) {
   fprintf(stderr, "ERR! %s\n", msg);
@@ -38,35 +39,34 @@ const char* state_name(mfb_update_state state) {
   }
 }
 
-struct point translate(struct point p) {
-  struct { float x, y; } factor = {
-    (float)RESOLUTION_X / window_size.x,
-    (float)RESOLUTION_Y / window_size.y
-  };
-
-  return (struct point){
-    factor.x*p.x,
-    factor.y*p.y
+point mouse_position(mfb_window *window) {
+  return (point){
+    mfb_get_mouse_x(window),
+    mfb_get_mouse_y(window)
   };
 }
 
-void mouse_button(struct mfb_window *window, mfb_mouse_button button, mfb_key_mod mod, bool is_pressed) {
+point translate(point p) {
+  return (point){
+    round(((float)RESOLUTION_X / window_size.x)*p.x),
+    round(((float)RESOLUTION_Y / window_size.y)*p.y)
+  };
+}
+
+void mouse_button(mfb_window *window, mfb_mouse_button button, mfb_key_mod mod, bool is_pressed) {
   if (!(mouse_is_pressed = is_pressed)) return;
-  struct point p;
-  p.x = mfb_get_mouse_x(window);
-  p.y = mfb_get_mouse_y(window);
-  struct point actual = translate(p);
-  window_state[actual.y][actual.x] = UINT32_MAX;
+  auto p = translate(mouse_position(window));
+  art_state[p.y][p.x] = UINT32_MAX;
 }
 
-void mouse_move(struct mfb_window *window, int x, int y) {
+void mouse_move(mfb_window *window, int x, int y) {
   if (!mouse_is_pressed) return;
-  struct point actual = translate((struct point){x, y});
-  window_state[actual.y][actual.x] = UINT32_MAX;
+  auto p = translate((point){x, y});
+  art_state[p.y][p.x] = UINT32_MAX;
 }
 
 int main(void) {
-  struct mfb_window *window = mfb_open_ex("art", RESOLUTION_X, RESOLUTION_Y, MFB_WF_FULLSCREEN);
+  mfb_window *window = mfb_open_ex("art", RESOLUTION_X, RESOLUTION_Y, MFB_WF_FULLSCREEN);
   if (!window) err("failed to open window");
 
   mfb_set_mouse_button_callback(window, mouse_button);
@@ -76,7 +76,7 @@ int main(void) {
   window_size.y = mfb_get_window_height(window);
 
   do {
-    if ((updated_state = mfb_update(window, window_state)) != MFB_STATE_OK) err(state_name(updated_state));
+    if ((updated_state = mfb_update(window, art_state)) != MFB_STATE_OK) err(state_name(updated_state));
   } while (mfb_wait_sync(window));
 
   return 0;
