@@ -5,16 +5,16 @@
 #include "minifb/include/MiniFB.h"
 #include "minifb/include/MiniFB_enums.h"
 
-#define XRES 10
-#define YRES 10
+#define RESOLUTION_X 10
+#define RESOLUTION_Y 10
 
-typedef struct { int x, y; } point;
+struct point { int x, y; };
 
 mfb_update_state updated_state = MFB_STATE_OK;
-unsigned int window_state[YRES][XRES] = {};
+unsigned int window_state[RESOLUTION_Y][RESOLUTION_X] = {};
 
-point window_size = {0, 0};
 bool mouse_is_pressed = false;
+struct point window_size = {};
 
 void err(const char *msg) {
   fprintf(stderr, "ERR! %s\n", msg);
@@ -38,13 +38,13 @@ const char* state_name(mfb_update_state state) {
   }
 }
 
-point translate(point p) {
+struct point translate(struct point p) {
   struct { float x, y; } factor = {
-    (float)XRES / window_size.x,
-    (float)YRES / window_size.y
+    (float)RESOLUTION_X / window_size.x,
+    (float)RESOLUTION_Y / window_size.y
   };
 
-  return (point){
+  return (struct point){
     factor.x*p.x,
     factor.y*p.y
   };
@@ -52,21 +52,21 @@ point translate(point p) {
 
 void mouse_button(struct mfb_window *window, mfb_mouse_button button, mfb_key_mod mod, bool is_pressed) {
   if (!(mouse_is_pressed = is_pressed)) return;
-  point p;
+  struct point p;
   p.x = mfb_get_mouse_x(window);
   p.y = mfb_get_mouse_y(window);
-  point actual = translate(p);
+  struct point actual = translate(p);
   window_state[actual.y][actual.x] = UINT32_MAX;
 }
 
 void mouse_move(struct mfb_window *window, int x, int y) {
   if (!mouse_is_pressed) return;
-  point actual = translate((point){x, y});
+  struct point actual = translate((struct point){x, y});
   window_state[actual.y][actual.x] = UINT32_MAX;
 }
 
 int main(void) {
-  struct mfb_window *window = mfb_open_ex("art", XRES, YRES, MFB_WF_FULLSCREEN);
+  struct mfb_window *window = mfb_open_ex("art", RESOLUTION_X, RESOLUTION_Y, MFB_WF_FULLSCREEN);
   if (!window) err("failed to open window");
 
   mfb_set_mouse_button_callback(window, mouse_button);
