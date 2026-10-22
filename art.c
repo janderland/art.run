@@ -1,47 +1,46 @@
-#include <fcntl.h>
 #include <stdio.h>
-#include <sys/mman.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
 #include "minifb/include/MiniFB.h"
+#include "minifb/include/MiniFB_enums.h"
 
-#define XRES 1024
-#define YRES 768
-#define BPP  4
-#define LEN  XRES * YRES * BPP
+#define XRES 10
+#define YRES 10
+#define LEN YRES * XRES
 
-unsigned int frameA[LEN];
-unsigned int frameB[LEN];
-unsigned int output[LEN];
+mfb_update_state state = MFB_STATE_OK;
+unsigned int frame[YRES][XRES] = {};
+
+void err(const char *msg) {
+  fprintf(stderr, "ERR! %s\n", msg);
+  exit(1);
+}
+
+const char* state_name(mfb_update_state state) {
+  switch (state) {
+    case MFB_STATE_OK:
+      return "OK";
+    case MFB_STATE_EXIT:
+      return "EXIT";
+    case MFB_STATE_INVALID_WINDOW:
+      return "INVALID WINDOW";
+    case MFB_STATE_INVALID_BUFFER:
+      return "INVALID BUFFER";
+    case MFB_STATE_INTERNAL_ERROR:
+      return "INTERNAL ERROR";
+    default:
+      return "<INVALID>";
+  }
+}
 
 int main(void) {
-  struct Window *window = mfb_open("Window", XRES, YRES);
-  if (!window) {
-    fprintf(stderr, "Failed to open window.");
-  }
+  struct mfb_window *window = mfb_open_ex("art", XRES, YRES, MFB_WF_FULLSCREEN);
+  if (!window) err("failed to open window");
 
-  for(int x = 0; x < XRES; x++) for(int y = 0; y < YRES; y++) {
-    int i = y * XRES + x;
-    frameA[i] = ~((x^y)-(x+y));
-    frameB[i] = y * XRES * x;
-  }
-  
-  unsigned char grade;
-  bool up = true;
-  while(true) {
-    for(int y = 0; y < YRES; y++) for(int x = 0; x < XRES; x++) {
-      int i = y * XRES + x;
-      unsigned int step = (frameB[i] - frameA[i]) / 256;
-      output[i] = frameA[i] + (step * grade);
-    }
-
-    UpdateState state = mfb_update(window, output);
-    if (state != STATE_OK) {
-      fprintf(stderr, "State is not 'ok'.");
-      break;
-    }
-
-    ++grade;
-  }
+  do {
+    if ((state = mfb_update(window, frame)) != MFB_STATE_OK) err(state_name(state));
+  } while (mfb_wait_sync(window));
 
   return 0;
 }
