@@ -65,18 +65,31 @@ void mouse_move(mfb_window *window, int x, int y) {
   art_state[p.y][p.x] = UINT32_MAX;
 }
 
+unsigned int game_of_life(point p) {
+  auto neighbours = 0;
+  for (int y=-1; y<=p.y+1; y++) for (int x=-1; x<=p.x+1; x++) {
+    if ((y < 0) || (x < 0) || (y >= RESOLUTION_Y) || (x >= RESOLUTION_X)) continue;
+    neighbours += art_state[y][x] > 0 ? 1 : 0;
+  }
+  if (neighbours == 3) return UINT32_MAX;
+  if (neighbours < 2 || neighbours > 3) return 0;
+  return art_state[p.y][p.x] > 0 ? UINT32_MAX: 0;
+}
+
 int main(void) {
   mfb_window *window = mfb_open_ex("art", RESOLUTION_X, RESOLUTION_Y, MFB_WF_FULLSCREEN);
   if (!window) err("failed to open window");
 
   mfb_set_mouse_button_callback(window, mouse_button);
   mfb_set_mouse_move_callback(window, mouse_move);
+  mfb_set_target_fps(10);
 
   window_size.x = mfb_get_window_width(window);
   window_size.y = mfb_get_window_height(window);
 
   do {
     if ((updated_state = mfb_update(window, art_state)) != MFB_STATE_OK) err(state_name(updated_state));
+    for (int y=0; y<RESOLUTION_Y; y++) for (int x=0; x<=RESOLUTION_X; x++) art_state[y][x] = game_of_life((point){x, y});
   } while (mfb_wait_sync(window));
 
   return 0;
