@@ -1,2 +1,12 @@
-#!/usr/bin/env sh
-clang -g ./minifb/build/libminifb.a ./art.c -o art.run -framework Metal -framework AppKit -framework MetalKit
+mkdir -p bin
+cd bin || exit 1
+clang -std=c23 ../art.c -o art.run \
+  ../minifb/build/libminifb.a \
+  -framework CoreFoundation \
+  -framework CoreGraphics \
+  -framework Foundation \
+  -framework AppKit \
+  -framework Carbon \
+  -framework MetalKit \
+  -framework Metal \
+  -lc++
