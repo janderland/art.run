@@ -1,18 +1,15 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "minifb/include/MiniFB.h"
 #include "minifb/include/MiniFB_enums.h"
 
-#define RESOLUTION_X 10
-#define RESOLUTION_Y 10
-#define FRAME_RATE 10
+constexpr int resolution_x = 10;
+constexpr int resolution_y = 10;
+constexpr int frame_rate = 10;
 
-typedef struct mfb_window mfb_window;
-typedef struct { int x, y; } point;
+struct point { int x, y; };
 
 // double buffering; which_buffer controls which buffer is used as the
 // current frame and which is used as the next frame
-unsigned int _frame_buffer[2][RESOLUTION_Y][RESOLUTION_X] = {};
+unsigned int _frame_buffer[2][resolution_y][resolution_x] = {};
 #define next_frame _frame_buffer[which_buffer ? 1 : 0]
 #define frame _frame_buffer[which_buffer ? 0 : 1]
 bool which_buffer = false;
@@ -54,8 +51,8 @@ point mouse_position(mfb_window *window) {
 // must be translated to their position within the frame
 point translate_position(point p) {
   return (point){
-    (int)(((float)RESOLUTION_X / window_size.x)*(float)p.x),
-    (int)(((float)RESOLUTION_Y / window_size.y)*(float)p.y)
+    (int)(((float)resolution_x / window_size.x)*(float)p.x),
+    (int)(((float)resolution_y / window_size.y)*(float)p.y)
   };
 }
 
@@ -83,7 +80,7 @@ unsigned int game_of_life(point p) {
   for (int y=p.y-1; y<=p.y+1; y++) for (int x=p.x-1; x<=p.x+1; x++) {
 
     // if this neighbour is off the screen, skip it
-    if (y < 0 || x < 0 || y >= RESOLUTION_Y || x >= RESOLUTION_X) continue;
+    if (y < 0 || x < 0 || y >= resolution_y || x >= resolution_x) continue;
 
     // don't count the given point as a neighbour
     if (y == p.y && x == p.x) continue;
@@ -104,19 +101,19 @@ unsigned int game_of_life(point p) {
 
 void render_next_frame() {
   // for each point, calculate it's value in the next frame
-  for (int y=0; y<RESOLUTION_Y; y++) for (int x=0; x<RESOLUTION_X; x++) next_frame[y][x] = game_of_life((point){x, y});
+  for (int y=0; y<resolution_y; y++) for (int x=0; x<resolution_x; x++) next_frame[y][x] = game_of_life((point){x, y});
 
   // flip which frame is active; next frame becomes current frame and vice versa
   which_buffer = !which_buffer;
 }
 
 int main(void) {
-  mfb_window *window = mfb_open_ex("art", RESOLUTION_X, RESOLUTION_Y, MFB_WF_FULLSCREEN);
+  mfb_window *window = mfb_open_ex("art", resolution_x, resolution_y, MFB_WF_FULLSCREEN);
   if (!window) err("failed to open window");
 
   mfb_set_mouse_button_callback(window, mouse_button);
   mfb_set_mouse_move_callback(window, mouse_move);
-  mfb_set_target_fps(FRAME_RATE);
+  mfb_set_target_fps(frame_rate);
 
   window_size.x = mfb_get_window_width(window);
   window_size.y = mfb_get_window_height(window);
