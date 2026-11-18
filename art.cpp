@@ -1,4 +1,3 @@
-#include <print>
 #include <stdio.h>
 #include <stdlib.h>
 #include "minifb/include/MiniFB.h"
@@ -55,17 +54,16 @@ point mouse_position(mfb_window *window) {
 // must be translated to their position within the frame
 point translate_position(point p) {
   return (point){
-    ((int)((float)RESOLUTION_X / window_size.x))*p.x,
-    ((int)((float)RESOLUTION_Y / window_size.y))*p.y
+    (int)(((float)RESOLUTION_X / window_size.x)*(float)p.x),
+    (int)(((float)RESOLUTION_Y / window_size.y)*(float)p.y)
   };
 }
 
 // callback for "mouse button" event
 void mouse_button(mfb_window *window, mfb_mouse_button button, mfb_key_mod mod, bool is_pressed) {
-  // if a mouse button is presed, activate the point it's hovering over
+  // if a mouse button is pressed, activate the point it's hovering over
   if (!(mouse_is_pressed = is_pressed)) return;
   auto p = translate_position(mouse_position(window));
-  std:std::println("click {} {}", p.x, p.y);
   frame[p.y][p.x] = UINT32_MAX;
 }
 
